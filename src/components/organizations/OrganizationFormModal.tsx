@@ -5,6 +5,7 @@ import { Upload, Trash2, Building2 } from 'lucide-react';
 export interface OrganizationFormData {
   name: string;
   subdomain: string;
+  domain?: string;
   adminEmail: string;
   allowedDomain: string;
   status: string;
@@ -33,6 +34,7 @@ export const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({
   const [formData, setFormData] = useState<OrganizationFormData>({
     name: '',
     subdomain: '',
+    domain: '',
     adminEmail: '',
     allowedDomain: '',
     status: 'ACTIVE',
@@ -50,6 +52,7 @@ export const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({
       setFormData({
         name: initialData?.name || '',
         subdomain: initialData?.subdomain || '',
+        domain: initialData?.domain || '',
         adminEmail: initialData?.adminEmail || '',
         allowedDomain: initialData?.allowedDomain || '',
         status: initialData?.status || 'ACTIVE',
@@ -339,17 +342,31 @@ export const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({
 
           <div>
             <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#334155' }}>
-              Allowed Domain
+              Custom / App Domain
             </label>
             <input
               type="text"
-              name="allowedDomain"
-              value={formData.allowedDomain}
+              name="domain"
+              value={formData.domain || ''}
               onChange={handleInputChange}
-              placeholder="e.g. acme.com"
+              placeholder="e.g. hr.acme.com"
               style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
             />
           </div>
+        </div>
+
+        <div>
+          <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+            Allowed Email Domain
+          </label>
+          <input
+            type="text"
+            name="allowedDomain"
+            value={formData.allowedDomain}
+            onChange={handleInputChange}
+            placeholder="e.g. acme.com"
+            style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+          />
         </div>
 
         <div>
