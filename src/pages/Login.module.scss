@@ -1,0 +1,104 @@
+.loginContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #fafafa;
+  overflow: hidden;
+  font-family: inherit;
+}
+
+.topLeftDecoration {
+  position: absolute;
+  top: -100px;
+  left: -100px;
+  width: 720px;
+  height: 720px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bottomRightDecoration {
+  position: absolute;
+  bottom: -100px;
+  right: -100px;
+  width: 760px;
+  height: 760px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.contentWrapper {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 440px;
+  padding: 0 20px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.brandTitle {
+  font-size: 36px;
+  line-height: 1;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  letter-spacing: -0.5px;
+}
+
+.extBold {
+  font-weight: 800;
+  color: #7047ab;
+  text-transform: uppercase;
+}
+
+.indiaLight {
+  font-weight: 300;
+  color: #2d3748;
+}
+
+.loginCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 38px 32px;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0 0 6px 0;
+  }
+
+  .subtitle {
+    color: #64748b;
+    font-size: 13px;
+    margin: 0 0 28px 0;
+    line-height: 1.4;
+  }
+}
+
+.googleBtnWrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+
+  iframe {
+    margin: 0 auto !important;
+  }
+}
