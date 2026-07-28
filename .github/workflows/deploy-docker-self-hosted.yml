@@ -13,7 +13,7 @@ env:
 jobs:
   build-and-deploy-using-docker:
     name: Build and Deploy using Docker
-    environment: hrmsadmin-frontend
+    environment: dev
     runs-on: self-hosted
 
     steps:
