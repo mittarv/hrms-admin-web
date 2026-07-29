@@ -1,0 +1,17 @@
+services:
+  hrmsadmin-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hrmsadmin-frontend
+    ports:
+      - "${HOST_PORT:-3060}:3060"
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - hrmsadmin-network
+
+networks:
+  hrmsadmin-network:
+    driver: bridge
