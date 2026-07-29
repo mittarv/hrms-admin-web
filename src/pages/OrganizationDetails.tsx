@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Globe, Mail, Calendar, Code, CheckCircle, XCircle, Pencil } from 'lucide-react';
+import { ArrowLeft, Globe, Mail, Calendar, Code, Pencil } from 'lucide-react';
 import { OrganizationFormModal, type OrganizationFormData } from '../components/organizations/OrganizationFormModal';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';

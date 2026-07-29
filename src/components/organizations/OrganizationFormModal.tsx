@@ -28,8 +28,7 @@ export const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({
   onClose,
   onSubmit,
   initialData,
-  isEdit = false,
-  showHrmsOption = true
+  isEdit = false
 }) => {
   const [formData, setFormData] = useState<OrganizationFormData>({
     name: '',
