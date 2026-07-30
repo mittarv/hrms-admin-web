@@ -10,7 +10,9 @@ import styles from './OrganizationDetails.module.scss';
 const OrganizationDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { token } = useSelector((state: RootState) => state.auth);
+  const { token, user } = useSelector((state: RootState) => state.auth);
+  
+  const canEdit = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
 
   const [org, setOrg] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -156,13 +158,15 @@ const OrganizationDetails: React.FC = () => {
         </div>
 
         <div className={styles.headerActions}>
-          <button 
-            className="btn-primary" 
-            onClick={handleOpenEdit}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}
-          >
-            <Pencil size={16} /> Edit Organization
-          </button>
+          {canEdit && (
+            <button 
+              className="btn-primary" 
+              onClick={handleOpenEdit}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}
+            >
+              <Pencil size={16} /> Edit Organization
+            </button>
+          )}
         </div>
       </div>
 

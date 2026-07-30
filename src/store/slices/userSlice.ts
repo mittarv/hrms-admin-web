@@ -7,6 +7,7 @@ export interface AdminUser {
   role: string;
   status: string;
   organizationId?: string | null;
+  organizations?: any[];
   createdAt?: string;
   updatedAt?: string;
 }

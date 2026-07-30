@@ -138,7 +138,7 @@ const Layout: React.FC = () => {
               )}
               <div className={styles.userDetails}>
                 <span className={styles.userName}>{user?.name || user?.email || 'Admin'}</span>
-                <span className={styles.userRole}>{user?.role || 'SUPER_ADMIN'}</span>
+                <span className={styles.userRole}>{user?.role?.replace('_', ' ')}</span>
               </div>
             </div>
           </div>

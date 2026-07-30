@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../../store';
 import { Modal } from '../ui/Modal/Modal';
 import { Upload, Trash2, Building2 } from 'lucide-react';
 
@@ -30,6 +33,7 @@ export const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({
   initialData,
   isEdit = false
 }) => {
+  const { token } = useSelector((state: RootState) => state.auth);
   const [formData, setFormData] = useState<OrganizationFormData>({
     name: '',
     subdomain: '',
@@ -42,8 +46,9 @@ export const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({
   });
 
   const [logoInputType, setLogoInputType] = useState<'upload' | 'url'>('upload');
-  // const [urlInput, setUrlInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const debounceTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   useEffect(() => {
     if (isOpen) {
@@ -71,11 +76,49 @@ export const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
+    let newValue = value;
+
+    if (['subdomain', 'domain', 'adminEmail', 'allowedDomain'].includes(name)) {
+      newValue = newValue.replace(/\s/g, '');
+    }
+    
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: newValue }));
+    }
+
+    if (['name', 'subdomain', 'domain', 'adminEmail'].includes(name)) {
+      if (debounceTimers.current[name]) clearTimeout(debounceTimers.current[name]);
+      
+      if (!newValue.trim()) {
+        setFieldErrors(prev => ({ ...prev, [name]: '' }));
+      } else if (isEdit && initialData && (initialData as any)[name] === newValue) {
+        setFieldErrors(prev => ({ ...prev, [name]: '' }));
+      } else {
+        debounceTimers.current[name] = setTimeout(async () => {
+          try {
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/organizations/check-availability`, {
+              params: { field: name, value: newValue },
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!res.data.isAvailable) {
+              const fieldLabels: Record<string, string> = {
+                name: 'Organization Name',
+                subdomain: 'Subdomain',
+                domain: 'Custom Domain',
+                adminEmail: 'Admin Email'
+              };
+              setFieldErrors(prev => ({ ...prev, [name]: `${fieldLabels[name]} is already taken.` }));
+            } else {
+              setFieldErrors(prev => ({ ...prev, [name]: '' }));
+            }
+          } catch (error) {
+            console.error('Error checking availability:', error);
+          }
+        }, 500);
+      }
     }
   };
 
@@ -304,8 +347,9 @@ export const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({
               value={formData.name}
               onChange={handleInputChange}
               placeholder="e.g. Acme Corp"
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '10px 12px', border: fieldErrors.name ? '1px solid #ef4444' : '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', outlineColor: fieldErrors.name ? '#ef4444' : undefined }}
             />
+            {fieldErrors.name && <span style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>{fieldErrors.name}</span>}
           </div>
 
           <div>
@@ -319,8 +363,9 @@ export const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({
               value={formData.subdomain}
               onChange={handleInputChange}
               placeholder="e.g. acme"
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '10px 12px', border: fieldErrors.subdomain ? '1px solid #ef4444' : '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', outlineColor: fieldErrors.subdomain ? '#ef4444' : undefined }}
             />
+            {fieldErrors.subdomain && <span style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>{fieldErrors.subdomain}</span>}
           </div>
         </div>
 
@@ -335,8 +380,9 @@ export const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({
               value={formData.adminEmail}
               onChange={handleInputChange}
               placeholder="admin@acme.com"
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '10px 12px', border: fieldErrors.adminEmail ? '1px solid #ef4444' : '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', outlineColor: fieldErrors.adminEmail ? '#ef4444' : undefined }}
             />
+            {fieldErrors.adminEmail && <span style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>{fieldErrors.adminEmail}</span>}
           </div>
 
           <div>
@@ -349,8 +395,9 @@ export const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({
               value={formData.domain || ''}
               onChange={handleInputChange}
               placeholder="e.g. hr.acme.com"
-              style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '10px 12px', border: fieldErrors.domain ? '1px solid #ef4444' : '1px solid #cbd5e1', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', outlineColor: fieldErrors.domain ? '#ef4444' : undefined }}
             />
+            {fieldErrors.domain && <span style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>{fieldErrors.domain}</span>}
           </div>
         </div>
 
@@ -418,21 +465,27 @@ export const OrganizationFormModal: React.FC<OrganizationFormModalProps> = ({
           </button>
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || Object.values(fieldErrors).some(err => err)}
             style={{
-              padding: '9px 20px',
+              padding: '8px 16px',
+              backgroundColor: (isSubmitting || Object.values(fieldErrors).some(err => err)) ? '#93c5fd' : '#2563eb',
+              color: '#ffffff',
               border: 'none',
               borderRadius: '8px',
-              background: '#2563eb',
-              color: 'white',
-              fontWeight: 600,
               fontSize: '14px',
-              cursor: 'pointer',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-              opacity: isSubmitting ? 0.7 : 1
+              fontWeight: 600,
+              cursor: (isSubmitting || Object.values(fieldErrors).some(err => err)) ? 'not-allowed' : 'pointer',
+              boxShadow: '0 1px 2px rgba(37,99,235,0.1)'
             }}
           >
-            {isSubmitting ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Organization'}
+            {isSubmitting ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span className="spinner"></span>
+                Saving...
+              </span>
+            ) : (
+              isEdit ? 'Save Changes' : 'Create Organization'
+            )}
           </button>
         </div>
       </form>

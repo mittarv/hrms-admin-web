@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Modal } from '../ui/Modal/Modal';
-import { User, Mail, Shield, Building2, UserPlus, CheckCircle } from 'lucide-react';
+import { User, Mail, Shield, Building2, UserPlus, CheckCircle, X, ChevronDown } from 'lucide-react';
 
 export interface UserFormData {
   name: string;
   email: string;
   role: string;
-  organizationId?: string;
+  organizationIds: string[];
   status?: string;
 }
 
@@ -14,7 +14,7 @@ interface UserFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: UserFormData) => Promise<void>;
-  initialData?: Partial<UserFormData> | null;
+  initialData?: Partial<UserFormData & { organizationId?: string; organizations?: any[] }> | null;
   isEdit?: boolean;
   organizations?: any[];
 }
@@ -31,18 +31,29 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
     name: '',
     email: '',
     role: 'ADMIN',
-    organizationId: '',
+    organizationIds: [],
     status: 'INVITED'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (initialData && isOpen) {
+      let orgIds: string[] = [];
+      if (initialData.organizationIds && initialData.organizationIds.length > 0) {
+        orgIds = initialData.organizationIds;
+      } else if (initialData.organizations && initialData.organizations.length > 0) {
+        orgIds = initialData.organizations.map((o: any) => o.organizationId || o.id);
+      } else if (initialData.organizationId) {
+        orgIds = [initialData.organizationId];
+      }
+
       setFormData({
         name: initialData.name || '',
         email: initialData.email || '',
         role: initialData.role || 'ADMIN',
-        organizationId: initialData.organizationId || '',
+        organizationIds: orgIds,
         status: initialData.status || 'INVITED'
       });
     } else if (!isOpen) {
@@ -50,11 +61,23 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
         name: '',
         email: '',
         role: 'ADMIN',
-        organizationId: '',
+        organizationIds: [],
         status: 'INVITED'
       });
+      setIsDropdownOpen(false);
     }
   }, [initialData, isOpen]);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +91,31 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
       setIsSubmitting(false);
     }
   };
+
+  const toggleOrg = (orgId: string) => {
+    setFormData(prev => {
+      const exists = prev.organizationIds.includes(orgId);
+      return {
+        ...prev,
+        organizationIds: exists
+          ? prev.organizationIds.filter(id => id !== orgId)
+          : [...prev.organizationIds, orgId]
+      };
+    });
+  };
+
+  const removeOrg = (orgId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      organizationIds: prev.organizationIds.filter(id => id !== orgId)
+    }));
+  };
+
+  const getOrgName = (orgId: string) => {
+    const org = organizations.find(o => o.id === orgId);
+    return org ? org.name : 'Unknown';
+  };
+  const isSuperAdmin = formData.role === 'SUPER_ADMIN';
 
   return (
     <Modal
@@ -191,35 +239,188 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
           )}
         </div>
 
-        {/* Assigned Organization Scope */}
+        {/* Assigned Organization Scope - Multi-select */}
         <div>
           <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
             Assigned Organization Scope
           </label>
-          <div style={{ position: 'relative' }}>
-            <Building2 size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-            <select
-              value={formData.organizationId || ''}
-              onChange={(e) => setFormData({ ...formData, organizationId: e.target.value })}
-              style={{
-                width: '100%',
-                padding: '10px 12px 10px 38px',
-                border: '1px solid #cbd5e1',
-                borderRadius: '8px',
-                fontSize: '14px',
-                outline: 'none',
-                backgroundColor: '#ffffff',
-                boxSizing: 'border-box'
-              }}
-            >
-              <option value="">Global / All Organizations</option>
-              {organizations.map((org) => (
-                <option key={org.id} value={org.id}>
-                  {org.name} ({org.subdomain})
-                </option>
-              ))}
-            </select>
-          </div>
+
+          {isSuperAdmin ? (
+            <div style={{
+              padding: '10px 14px',
+              border: '1px solid #e2e8f0',
+              borderRadius: '8px',
+              backgroundColor: '#f0fdf4',
+              color: '#166534',
+              fontSize: '13px',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <Building2 size={16} />
+              Super Admins automatically have access to all organizations.
+            </div>
+          ) : (
+            <>
+              {/* Dropdown Trigger */}
+              <div ref={dropdownRef} style={{ position: 'relative' }}>
+                <div
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    padding: '10px 12px 10px 38px',
+                    border: `1px solid ${isDropdownOpen ? '#2563eb' : '#cbd5e1'}`,
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    backgroundColor: '#ffffff',
+                    cursor: 'pointer',
+                    boxSizing: 'border-box',
+                    transition: 'border-color 0.2s',
+                    color: '#64748b'
+                  }}
+                >
+                  <Building2 size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <span>
+                    {formData.organizationIds.length === 0
+                      ? 'Select organizations...'
+                      : `${formData.organizationIds.length} organization${formData.organizationIds.length > 1 ? 's' : ''} selected`}
+                  </span>
+                  <ChevronDown size={16} style={{ color: '#94a3b8', transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                </div>
+
+                {/* Dropdown List */}
+                {isDropdownOpen && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    right: 0,
+                    marginTop: '4px',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                    backgroundColor: '#ffffff',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+                    zIndex: 999,
+                    maxHeight: '200px',
+                    overflowY: 'auto'
+                  }}>
+                    {organizations.length === 0 ? (
+                      <div style={{ padding: '12px 14px', color: '#94a3b8', fontSize: '13px', textAlign: 'center' }}>
+                        No organizations available
+                      </div>
+                    ) : (
+                      organizations.map((org) => {
+                        const isSelected = formData.organizationIds.includes(org.id);
+                        return (
+                          <div
+                            key={org.id}
+                            onClick={() => toggleOrg(org.id)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px',
+                              padding: '10px 14px',
+                              cursor: 'pointer',
+                              backgroundColor: isSelected ? '#eff6ff' : 'transparent',
+                              borderBottom: '1px solid #f1f5f9',
+                              transition: 'background-color 0.15s'
+                            }}
+                            onMouseEnter={(e) => { if (!isSelected) (e.currentTarget.style.backgroundColor = '#f8fafc'); }}
+                            onMouseLeave={(e) => { if (!isSelected) (e.currentTarget.style.backgroundColor = 'transparent'); }}
+                          >
+                            <div style={{
+                              width: '18px',
+                              height: '18px',
+                              borderRadius: '4px',
+                              border: isSelected ? '2px solid #2563eb' : '2px solid #cbd5e1',
+                              backgroundColor: isSelected ? '#2563eb' : '#ffffff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                              transition: 'all 0.15s'
+                            }}>
+                              {isSelected && (
+                                <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                                  <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              )}
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '14px', color: '#1e293b', fontWeight: isSelected ? 600 : 400 }}>
+                                {org.name}
+                              </div>
+                              {org.subdomain && (
+                                <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '1px' }}>
+                                  {org.subdomain}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Selected Org Chips */}
+              {formData.organizationIds.length > 0 && (
+                <div style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '8px',
+                  marginTop: '10px'
+                }}>
+                  {formData.organizationIds.map(orgId => (
+                    <div
+                      key={orgId}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '5px 8px 5px 10px',
+                        backgroundColor: '#eff6ff',
+                        border: '1px solid #bfdbfe',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        color: '#1e40af',
+                        fontWeight: 500
+                      }}
+                    >
+                      <Building2 size={13} style={{ color: '#3b82f6' }} />
+                      {getOrgName(orgId)}
+                      <button
+                        type="button"
+                        onClick={() => removeOrg(orgId)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '18px',
+                          height: '18px',
+                          borderRadius: '50%',
+                          border: 'none',
+                          backgroundColor: '#dbeafe',
+                          cursor: 'pointer',
+                          padding: 0,
+                          transition: 'background-color 0.15s'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#bfdbfe')}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#dbeafe')}
+                      >
+                        <X size={12} style={{ color: '#1e40af' }} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
 
         {/* Footer Actions */}

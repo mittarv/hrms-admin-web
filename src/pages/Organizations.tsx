@@ -17,7 +17,9 @@ const Organizations: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { organizations, status } = useSelector((state: RootState) => state.orgs);
-  const { token } = useSelector((state: RootState) => state.auth);
+  const { token, user } = useSelector((state: RootState) => state.auth);
+  
+  const canEdit = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -214,10 +216,12 @@ const Organizations: React.FC = () => {
           <p>View and manage organizations</p>
         </div>
         
-        <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
-          <Plus size={16} />
-          Add Organization
-        </button>
+        {canEdit && (
+          <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
+            <Plus size={16} />
+            Add Organization
+          </button>
+        )}
       </div>
 
       <div className={styles.tabContainer}>
@@ -360,18 +364,22 @@ const Organizations: React.FC = () => {
                         >
                           <Building2 size={14} color="#2563eb" /> Organization Details
                         </button>
-                        <button 
-                          onClick={() => { setOpenDropdownId(null); handleEdit(org); }} 
-                          style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 14px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#1e293b', fontWeight: 500 }}
-                        >
-                          <Pencil size={14} color="#64748b" /> Edit
-                        </button>
-                        <button 
-                          onClick={() => { setOpenDropdownId(null); handleDeleteClick(org.id); }} 
-                          style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 14px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '13px', fontWeight: 500 }}
-                        >
-                          <Trash2 size={14} color="#ef4444" /> Delete
-                        </button>
+                        {canEdit && (
+                          <>
+                            <button 
+                              onClick={() => { setOpenDropdownId(null); handleEdit(org); }} 
+                              style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 14px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#1e293b', fontWeight: 500 }}
+                            >
+                              <Pencil size={14} color="#64748b" /> Edit
+                            </button>
+                            <button 
+                              onClick={() => { setOpenDropdownId(null); handleDeleteClick(org.id); }} 
+                              style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '8px 14px', textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '13px', fontWeight: 500 }}
+                            >
+                              <Trash2 size={14} color="#ef4444" /> Delete
+                            </button>
+                          </>
+                        )}
                       </div>
                     )}
                   </td>
@@ -435,9 +443,11 @@ const Organizations: React.FC = () => {
                     </span>
                   </td>
                   <td style={{ textAlign: 'right' }}>
-                    <button className={styles.restoreBtn} onClick={() => handleRestore(org.id)}>
-                      <RotateCcw size={14} /> Restore
-                    </button>
+                    {canEdit && (
+                      <button className={styles.restoreBtn} onClick={() => handleRestore(org.id)}>
+                        <RotateCcw size={14} /> Restore
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
