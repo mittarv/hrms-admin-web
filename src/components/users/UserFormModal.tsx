@@ -205,7 +205,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({
               >
                 <option value="SUPER_ADMIN">Super Admin (Full Access)</option>
                 <option value="ADMIN">Admin (Manage Orgs & Users)</option>
-                <option value="HR_MANAGER">HR Manager (Manage Details)</option>
                 <option value="VIEWER">Viewer (Read-Only)</option>
               </select>
             </div>

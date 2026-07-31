@@ -325,7 +325,7 @@ const UsersPage: React.FC = () => {
                 ))}
 
                 <div style={{ fontWeight: '600', marginTop: '16px', marginBottom: '8px', fontSize: '12px', color: '#64748b', textTransform: 'uppercase' }}>Filter by Role</div>
-                {['ALL', 'SUPER_ADMIN', 'ADMIN', 'HR_MANAGER', 'VIEWER'].map(role => (
+                {['ALL', 'SUPER_ADMIN', 'ADMIN', 'VIEWER'].map(role => (
                   <label key={role} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0', cursor: 'pointer', fontSize: '14px' }}>
                     <input
                       type="radio"
