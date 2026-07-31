@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { Building2, Users, Settings, LifeBuoy, Menu, X, LogOut } from 'lucide-react';
+import { Building2, Users, Menu, X, LogOut } from 'lucide-react';
+// import { Building2, Users, Settings, LifeBuoy, Menu, X, LogOut } from 'lucide-react';
+
 import { SearchInput } from '../ui/SearchInput/SearchInput';
 import { logout } from '../../store/slices/authSlice';
 import type { RootState } from '../../store';
@@ -85,20 +87,20 @@ const Layout: React.FC = () => {
         </nav>
 
         <div className={styles.bottomMenu}>
-          <NavLink 
+          {/* <NavLink 
             to="/dashboard/settings" 
             className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}
           >
             <Settings />
             Settings
-          </NavLink>
-          <NavLink 
+          </NavLink> */}
+          {/* <NavLink 
             to="/dashboard/support" 
             className={({ isActive }) => `${styles.navItem} ${isActive ? styles.active : ''}`}
           >
             <LifeBuoy />
             Support
-          </NavLink>
+          </NavLink> */}
           <button onClick={handleLogout} className={styles.logoutBtn}>
             <LogOut />
             Logout
@@ -138,7 +140,7 @@ const Layout: React.FC = () => {
               )}
               <div className={styles.userDetails}>
                 <span className={styles.userName}>{user?.name || user?.email || 'Admin'}</span>
-                <span className={styles.userRole}>{user?.role || 'SUPER_ADMIN'}</span>
+                <span className={styles.userRole}>{user?.role?.replace('_', ' ')}</span>
               </div>
             </div>
           </div>

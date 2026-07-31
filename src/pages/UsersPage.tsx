@@ -20,8 +20,10 @@ import styles from './UsersPage.module.scss';
 
 const UsersPage: React.FC = () => {
   const dispatch = useDispatch();
-  const { token } = useSelector((state: RootState) => state.auth);
+  const { token, user } = useSelector((state: RootState) => state.auth);
   const { users, deletedUsers, status } = useSelector((state: RootState) => state.users);
+  
+  const canEdit = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
 
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [loadingDeleted, setLoadingDeleted] = useState<boolean>(false);
@@ -213,10 +215,12 @@ const UsersPage: React.FC = () => {
           <p>Invite, manage roles, and control admin access permissions</p>
         </div>
 
-        <button className="btn-primary" onClick={() => { setSelectedUser(null); setIsFormModalOpen(true); }}>
-          <UserPlus size={16} />
-          Invite Admin User
-        </button>
+        {canEdit && (
+          <button className="btn-primary" onClick={() => { setSelectedUser(null); setIsFormModalOpen(true); }}>
+            <UserPlus size={16} />
+            Invite Admin User
+          </button>
+        )}
       </div>
 
       {/* Metric Cards */}
@@ -397,9 +401,14 @@ const UsersPage: React.FC = () => {
                     </td>
                     <td>
                       <span style={{ fontSize: '13px', color: '#475569' }}>
-                        {user.organizationId 
-                          ? (organizations.find(o => o.id === user.organizationId)?.name || 'Specific Org')
-                          : 'Global Access'}
+                        {user.role === 'SUPER_ADMIN' 
+                          ? 'Global Access' 
+                          : user.organizations && user.organizations.length > 0
+                            ? user.organizations.map((orgMap: any) => {
+                                const org = organizations.find(o => o.id === orgMap.organizationId);
+                                return org ? org.name : 'Unknown Org';
+                              }).join(', ')
+                            : 'No Access'}
                       </span>
                     </td>
                     <td>{formatDate(user.createdAt)}</td>
@@ -411,7 +420,7 @@ const UsersPage: React.FC = () => {
                         <MoreHorizontal size={18} />
                       </button>
 
-                      {openDropdownId === user.id && (
+                      {openDropdownId === user.id && canEdit && (
                         <div style={{ position: 'absolute', right: '16px', top: '38px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', zIndex: 10, boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', minWidth: '160px', textAlign: 'left' }}>
                           {user.status === 'INVITED' && (
                             <button
@@ -490,9 +499,11 @@ const UsersPage: React.FC = () => {
                     </td>
                     <td>{formatDate(user.createdAt)}</td>
                     <td style={{ textAlign: 'right' }}>
-                      <button className={styles.restoreBtn} onClick={() => handleRestoreUser(user.id)}>
-                        <RotateCcw size={14} /> Restore Access
-                      </button>
+                      {canEdit && (
+                        <button className={styles.restoreBtn} onClick={() => handleRestoreUser(user.id)}>
+                          <RotateCcw size={14} /> Restore Access
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
