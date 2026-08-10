@@ -330,6 +330,14 @@ const Organizations: React.FC = () => {
                         >
                           {org.name}
                         </span>
+                        <span className={styles.orgId}>#{org.id}</span>
+                        {org.slugDomain && (
+                          <span className={styles.orgId} style={{ marginTop: '2px', color: '#2563eb' }}>
+                            <a href={`http://${org.slugDomain}`} target="_blank" rel="noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+                              {org.slugDomain}
+                            </a>
+                          </span>
+                        )}
                       </div>
                     </div>
                   </td>
@@ -423,6 +431,7 @@ const Organizations: React.FC = () => {
                         >
                           {org.name}
                         </span>
+                        <span className={styles.orgId}>#{org.id}</span>
                       </div>
                     </div>
                   </td>
