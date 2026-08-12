@@ -8,9 +8,12 @@ export const setupAxiosInterceptors = () => {
     (error) => {
       if (error.response && error.response.status === 401) {
         const url = error.config?.url || '';
-        // Don't trigger session expired modal for the login endpoint itself
-        const isLoginEndpoint = url.includes('/auth/login') || url.includes('/login');
-        if (!isLoginEndpoint) {
+        // Don't trigger session expired for auth / invite flows
+        const isAuthEndpoint =
+          url.includes('/auth/') ||
+          url.includes('/login') ||
+          url.includes('verify-invite');
+        if (!isAuthEndpoint) {
           store.dispatch(setSessionExpired(true));
         }
       }

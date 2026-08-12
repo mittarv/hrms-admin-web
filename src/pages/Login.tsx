@@ -12,16 +12,23 @@ const Login: React.FC = () => {
 
   const handleGoogleSuccess = async (credentialResponse: any) => {
     try {
+      const inviteToken = sessionStorage.getItem('hrms_admin_invite_token') || undefined;
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/google`, {
         token: credentialResponse.credential,
+        ...(inviteToken ? { inviteToken } : {}),
       });
 
       const { user, token } = response.data;
+      sessionStorage.removeItem('hrms_admin_invite_token');
       dispatch(setCredentials({ user, token }));
       navigate('/dashboard/organizations');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login failed:', error);
-      alert('Login failed. Please try again.');
+      alert(
+        error?.response?.data?.error ||
+        error?.message ||
+        'Login failed. Please try again.'
+      );
     }
   };
 
