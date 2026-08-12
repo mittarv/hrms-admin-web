@@ -19,9 +19,13 @@ const Login: React.FC = () => {
       const { user, token } = response.data;
       dispatch(setCredentials({ user, token }));
       navigate('/dashboard/organizations');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login failed:', error);
-      alert('Login failed. Please try again.');
+      alert(
+        error?.response?.data?.error ||
+        error?.message ||
+        'Login failed. Please try again.'
+      );
     }
   };
 

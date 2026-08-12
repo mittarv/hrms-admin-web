@@ -115,6 +115,10 @@ const UsersPage: React.FC = () => {
         if (res.data.data) {
           dispatch(addUserSuccess(res.data.data));
         }
+        if (res.data.emailSent === false) {
+          const link = res.data.inviteLink ? `\n\nInvite link:\n${res.data.inviteLink}` : '';
+          alert((res.data.message || 'User saved, but invitation email failed to send.') + link);
+        }
       }
       setIsFormModalOpen(false);
       setSelectedUser(null);
@@ -126,13 +130,18 @@ const UsersPage: React.FC = () => {
 
   const handleResendInvite = async (userId: string) => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/users/${userId}/resend-invite`, {}, {
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/users/${userId}/resend-invite`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('Invitation email resent successfully!');
+      if (res.data.emailSent === false) {
+        const link = res.data.inviteLink ? `\n\nInvite link:\n${res.data.inviteLink}` : '';
+        alert((res.data.message || 'Email failed to send.') + link);
+      } else {
+        alert('Invitation email resent successfully!');
+      }
       loadUsers();
     } catch (error: any) {
-      alert('Failed to resend invite');
+      alert(error?.response?.data?.error || 'Failed to resend invite');
     }
     setOpenDropdownId(null);
   };
