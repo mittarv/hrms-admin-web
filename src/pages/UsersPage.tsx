@@ -178,7 +178,8 @@ const UsersPage: React.FC = () => {
   // Filter & Sort Active / Invited Users
   const filteredUsers = users.filter(user => {
     if (activeTab === 'invited' && user.status !== 'INVITED') return false;
-    if (activeTab === 'active' && user.status === 'INVITED') return true; // keep invited in main tab as well
+    // Active tab: show ACTIVE + INVITED (pending invites belong in the main list too)
+    if (activeTab === 'active' && user.status !== 'ACTIVE' && user.status !== 'INVITED') return false;
 
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
